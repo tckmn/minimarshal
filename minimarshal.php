@@ -2,8 +2,8 @@
 
 /*
  * minimarshal.php
- * author: Keyboard Fire <andy@keyboardfire.com>
- * license: MIT
+ * @author Keyboard Fire <andy@keyboardfire.com>
+ * @license MIT
  */
 
 // CHANGE THIS DEFINITION AND THOSE IN THE FILE IT POINTS TO BEFORE USING
@@ -25,16 +25,34 @@ function setup() {
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
             url VARCHAR(255) NOT NULL,
             date DATETIME NOT NULL,
-            data TEXT NOT NULL
+            data TEXT
         );");
         $dbh->exec("CREATE TABLE Tags (
             id INT(11) AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL
+            name VARCHAR(255) NOT NULL,
+            parent_id INT(11)
         );");
         $dbh->exec("CREATE TABLE PageTags (
             page_id INT(11) NOT NULL,
             tag_id INT(11) NOT NULL
         );");
+    } catch (PDOException $e) {
+        return $e;
+    }
+}
+
+/**
+ * Add a page.
+ * @param url The URL of the page you are adding.
+ * @param data Any extra data to store along with the URL; optional.
+ * @return PDOException exception object if an error occurred, NULL otherwise
+ */
+function addPage($url, $data = NULL) {
+    global $dbh;
+    try {
+        $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
+            "(?, NOW(), ?)");
+        $stmt->execute(array($url, $data));
     } catch (PDOException $e) {
         return $e;
     }
