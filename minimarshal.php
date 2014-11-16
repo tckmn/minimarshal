@@ -45,15 +45,21 @@ function setup() {
  * Add a page.
  * @param url The URL of the page you are adding.
  * @param data Any extra data to store along with the URL; optional.
- * @return PDOException exception object if an error occurred, NULL otherwise
  */
 function addPage($url, $data = NULL) {
     global $dbh;
-    try {
-        $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
-            "(?, NOW(), ?)");
-        $stmt->execute(array($url, $data));
-    } catch (PDOException $e) {
-        return $e;
-    }
+    $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
+        "(?, NOW(), ?)");
+    $stmt->execute(array($url, $data));
+}
+
+/**
+ * Get pages by certain criteria.
+ * @param criteria An array of criteria. TODO
+ */
+function getPages($criteria = array()) {
+    global $dbh;
+    $stmt = $dbh->prepare("SELECT url, date, data FROM Pages");
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
