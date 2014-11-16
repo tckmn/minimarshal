@@ -1,2 +1,9 @@
 # Vim
 .*.sw?
+
+# My personal creds
+minimarshaldefs.php
+
+# Testing stuff
+test.php
+go.sh
