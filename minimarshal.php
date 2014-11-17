@@ -36,6 +36,9 @@ function setup() {
             page_id INT(11) NOT NULL,
             tag_id INT(11) NOT NULL
         );");
+
+        // There needs to be at least one tag for posts to show up
+        addTag('untagged');
     } catch (PDOException $e) {
         return $e;
     }
@@ -48,18 +51,65 @@ function setup() {
  */
 function addPage($url, $data = NULL) {
     global $dbh;
+
+    // add the page stub to the database
     $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
         "(?, NOW(), ?)");
     $stmt->execute(array($url, $data));
+
+    // tag it with untagged first
+    $stmt = $dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, 1)");
+    $stmt->execute(array($dbh->lastInsertId('Pages')));
 }
 
 /**
  * Get pages by certain criteria.
+ * @param tags Get only pages that have all of these tags. Defaults to array().
+ * @param excludeTags Get only pages that have none of these. Defaults to array().
+ */
+function getPages($tags = array(), $excludeTags = array()) {
+    global $dbh;
+
+    // for $tags and $excludeTags (" WHERE ... AND ... AND ...")
+    $whereClause = '';
+    foreach ($tags as $tag) {
+        $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? IN (t.name)";
+    }
+    foreach ($excludeTags as $excludeTag) {
+        $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? NOT IN (t.name)";
+    }
+
+    // this query is terrifying
+    $stmt = $dbh->prepare("SELECT p.*, GROUP_CONCAT(t.name) FROM Pages p " .
+        "INNER JOIN Tags t ON t.id IN (SELECT tag_id FROM PageTags " .
+        "WHERE page_id = p.id)$whereClause GROUP BY p.id;");
+
+    // execute without args if no $tags or $excludeTags
+    if ($whereClause === '') $stmt->execute();
+    else $stmt->execute(array_merge($tags, $excludeTags));
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Add a tag.
+ * @param name The name of the tag you are adding.
+ * @param parent Which tag should be this tag's parent; optional.
+ */
+function addTag($name, $parentId = NULL) {
+    global $dbh;
+    $stmt = $dbh->prepare("INSERT INTO Tags (name, parent_id) VALUES " .
+        "(?, ?)");
+    $stmt->execute(array($name, $parentId));
+}
+
+/**
+ * Get tags by certain criteria.
  * @param criteria An array of criteria. TODO
  */
-function getPages($criteria = array()) {
+function getTags($criteria = array()) {
     global $dbh;
-    $stmt = $dbh->prepare("SELECT url, date, data FROM Pages");
+    $stmt = $dbh->prepare("SELECT * FROM Tags");
     $stmt->execute();
-    return $stmt->fetchAll();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
