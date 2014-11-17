@@ -63,6 +63,22 @@ function addPage($url, $data = NULL) {
 }
 
 /**
+ * Delete a page by its id.
+ * @param id The id of the page to delete.
+ */
+function delPage($id) {
+    global $dbh;
+
+    // delete the actual page
+    $stmt = $dbh->prepare("DELETE FROM Pages WHERE id = ?");
+    $stmt->execute(array($id));
+
+    // delete the references to that page in the page <=> tags table
+    $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ?");
+    $stmt->execute(array($id));
+}
+
+/**
  * Get pages by certain criteria.
  * @param tags Get only pages that have all of these tags. Defaults to array().
  * @param excludeTags Get only pages that have none of these. Defaults to array().

@@ -1,21 +1,11 @@
 <!DOCTYPE html>
 <?php require_once('minimarshal.php'); ?>
-<?php
-if (isset($_POST['create'])) {
-    addPage($_POST['url'], $_POST['data']);
-} else if (isset($_POST['createtag'])) {
-    addTag($_POST['tag']);
-} else if (isset($_POST['deltag'])) {
-    list($pageid, $tagid) = explode('-', $_POST['deltag']);
-    delPageTag($pageid, $tagid);
-} else if (isset($_POST['addpagetag'])) {
-    addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
-}
-?>
 <html lang='en'>
     <head>
         <title>MiniMarshal example</title>
         <style>
+        .err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
+            padding: 20px; border-radius: 20px; }
         .page { margin: 10px; padding-bottom: 15px;
             border-bottom: 1px dotted black; }
         .data { margin: 15px; }
@@ -24,9 +14,35 @@ if (isset($_POST['create'])) {
         .tags span button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
         #tag-listing { margin: 30px 0px 10px; }
+        .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
         </style>
+        <meta name='viewport' content='width=device-width' />
     </head>
     <body>
+        <?php
+        // to prevent abuse (long story)
+        if (md5($_GET['x']) !== '1f6b3872491e0d2ecb0369792627e73f') {
+            echo "<div class='err'>Not authenticated. No requests will be
+                processed.</div>";
+        } else {
+
+        if (isset($_POST['addpage'])) {
+            addPage($_POST['url'], $_POST['data']);
+        } else if (isset($_POST['delpage'])) {
+            delPage($_POST['delpage']);
+        } else if (isset($_POST['addtag'])) {
+            addTag($_POST['tag']);
+        } else if (isset($_POST['deltag'])) {
+            // TODO add front and back end
+        } else if (isset($_POST['addpagetag'])) {
+            addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
+        } else if (isset($_POST['delpagetag'])) {
+            list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
+            delPageTag($pageid, $tagid);
+        }
+
+        }
+        ?>
         <h1>My pages</h1>
         <?php
             foreach (getPages() as $page) {
@@ -48,11 +64,13 @@ if (isset($_POST['create'])) {
                         <div>&nbsp;</div>";
                     foreach ($tags as $tagname => $tagid) {
                         echo "
-                        <span class='tag'>$tagname <button name='deltag'
+                        <span class='tag'>$tagname <button name='delpagetag'
                             value='$id-$tagid'>&times;</button></span>";
                     }
                 echo "
                     </div>
+                    <button class='delpage' name='delpage'
+                        value='$id'>delete this page</button>
                 </form>";
             }
         ?>
@@ -60,7 +78,7 @@ if (isset($_POST['create'])) {
             <label for='url'>URL</label> <input name='url' type='text' /><br>
             <label for='data'>Data</label><br>
             <textarea name='data'></textarea><br>
-            <input name='create' type='submit' value='Create a new page' />
+            <input name='addpage' type='submit' value='Create a new page' />
         </form>
         <div id='tag-listing' class='tags'>
             Tags: <?php
@@ -71,7 +89,7 @@ if (isset($_POST['create'])) {
         </div>
         <form method='post'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
-            <input name='createtag' type='submit' value='Create a new tag' />
+            <input name='addtag' type='submit' value='Create a new tag' />
         </form>
     </body>
 </html>
