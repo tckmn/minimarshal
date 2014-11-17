@@ -80,7 +80,8 @@ function getPages($tags = array(), $excludeTags = array()) {
     }
 
     // this query is terrifying
-    $stmt = $dbh->prepare("SELECT p.*, GROUP_CONCAT(t.name) FROM Pages p " .
+    $stmt = $dbh->prepare("SELECT p.*, GROUP_CONCAT(t.id) AS tag_ids, " . "
+        GROUP_CONCAT(t.name) AS tag_names FROM Pages p " .
         "INNER JOIN Tags t ON t.id IN (SELECT tag_id FROM PageTags " .
         "WHERE page_id = p.id)$whereClause GROUP BY p.id;");
 
@@ -104,12 +105,47 @@ function addTag($name, $parentId = NULL) {
 }
 
 /**
- * Get tags by certain criteria.
- * @param criteria An array of criteria. TODO
+ * Get all tags.
  */
-function getTags($criteria = array()) {
+function getTags() {
     global $dbh;
-    $stmt = $dbh->prepare("SELECT * FROM Tags");
+    $stmt = $dbh->prepare("SELECT t.*, (SELECT name FROM Tags p " .
+        "WHERE p.id = t.parent_id) AS parent_name FROM Tags t");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Add a tag to a page.
+ * @param pageid The id of the page to add the tag to.
+ * @param tagid The id of the tag to add to the page.
+ */
+function addPageTag($pageid, $tagid) {
+    global $dbh;
+    $stmt = $dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, ?)");
+    $stmt->execute(array($pageid, $tagid));
+}
+
+/**
+ * Delete a tag from a page.
+ * @param pageid The id of the page to remove the tag from.
+ * @param tagid The id of the tag to remove from the page.
+ */
+function delPageTag($pageid, $tagid) {
+    global $dbh;
+    $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
+    $stmt->execute(array($pageid, $tagid));
+}
+
+/**
+ * Get a tag id from its name.
+ * @param name The name of the tag to get the id of.
+ * @return The id of the tag.
+ */
+function tagIdFromName($name) {
+    global $dbh;
+    $stmt = $dbh->prepare("SELECT id FROM Tags WHERE name = ?");
+    $stmt->execute(array($name));
+    $fetched = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $fetched['id'];
 }

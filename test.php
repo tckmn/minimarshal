@@ -5,6 +5,11 @@ if (isset($_POST['create'])) {
     addPage($_POST['url'], $_POST['data']);
 } else if (isset($_POST['createtag'])) {
     addTag($_POST['tag']);
+} else if (isset($_POST['deltag'])) {
+    list($pageid, $tagid) = explode('-', $_POST['deltag']);
+    delPageTag($pageid, $tagid);
+} else if (isset($_POST['addpagetag'])) {
+    addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
 }
 ?>
 <html lang='en'>
@@ -16,6 +21,8 @@ if (isset($_POST['create'])) {
         .data { margin: 15px; }
         .tags span { padding: 5px; margin: 0px 2px; border-radius: 5px;
             background-color: #CCF; }
+        .tags span button { background-color: #F00; padding: 0px 2px;
+            color: #FFF; border-radius: 10px; }
         #tag-listing { margin: 30px 0px 10px; }
         </style>
     </head>
@@ -25,17 +32,28 @@ if (isset($_POST['create'])) {
             foreach (getPages() as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
-                $tags = array_map('htmlspecialchars',
-                    explode(',', $page['GROUP_CONCAT(t.name)']));
-                echo "<div class='page'>
+                $tags = array_combine(
+                    array_map('htmlspecialchars', explode(',', $page['tag_names'])),
+                    explode(',', $page['tag_ids'])
+                );
+                $id = $page['id'];
+                echo "
+                <form class='page' method='post'>
                     <h2 class='url'><a href='$url'>$url</a></h2>
                     <div class='data'>$data</div>
-                    <div class='tags'>";
-                    foreach ($tags as $tag) {
-                        echo "<span class='tag'>$tag</span>";
+                    <div class='tags'>
+                        <input name='pagetag' type='text' />
+                        <button name='addpagetag' type='submit'
+                            value='$id'>Add tag</button>
+                        <div>&nbsp;</div>";
+                    foreach ($tags as $tagname => $tagid) {
+                        echo "
+                        <span class='tag'>$tagname <button name='deltag'
+                            value='$id-$tagid'>&times;</button></span>";
                     }
-                echo "</div>
-                </div>";
+                echo "
+                    </div>
+                </form>";
             }
         ?>
         <form method='post'>
