@@ -8,6 +8,7 @@
             padding: 20px; border-radius: 20px; }
         .page { margin: 10px; padding-bottom: 15px;
             border-bottom: 1px dotted black; }
+        .date { color: #777; font-size: 12px; }
         .data { margin: 15px; }
         .tags span { padding: 5px; margin: 0px 2px; border-radius: 5px;
             background-color: #CCF; }
@@ -55,7 +56,8 @@
                 $id = $page['id'];
                 echo "
                 <form class='page' method='post'>
-                    <h2 class='url'><a href='$url'>$url</a></h2>
+                    <h2 class='url'><a href='$url'>$url</a>
+                        <span class='date'>- $page[date]</span></h2>
                     <div class='data'>$data</div>
                     <div class='tags'>
                         <input name='pagetag' type='text' />
@@ -83,7 +85,8 @@
         <div id='tag-listing' class='tags'>
             Tags: <?php
                 foreach (getTags() as $tag) {
-                    echo "<span class='tag'>$tag[name]</span>";
+                    $name = htmlspecialchars($tag['name']);
+                    echo "<span class='tag'>$name</span>";
                 }
             ?>
         </div>
