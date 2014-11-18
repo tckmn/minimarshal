@@ -10,6 +10,9 @@
 // MINIMARSHAL!!!
 define('_MINIMARSHAL_DEFS_PATH', 'minimarshaldefs.php');
 
+// TODO autocreate this dir if does not exist
+session_save_path(__DIR__ . '/_minimarshal_session'); session_start();
+
 require_once(_MINIMARSHAL_DEFS_PATH);
 $dbh = new PDO("mysql:host=" . _MINIMARSHAL_DB_HOST . ";dbname=" .
     _MINIMARSHAL_DB_NAME, _MINIMARSHAL_DB_USER, _MINIMARSHAL_DB_PASS);

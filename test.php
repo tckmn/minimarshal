@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 <?php require_once('minimarshal.php'); ?>
+<!DOCTYPE html>
 <html lang='en'>
     <head>
         <title>MiniMarshal example</title>
@@ -17,42 +17,55 @@
             color: #FFF; border-radius: 10px; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
+
+        <?php if (!isset($_GET['admin'])) { ?>
+        .admin { display: none; }
+        <?php } ?>
         </style>
         <meta name='viewport' content='width=device-width' />
     </head>
     <body>
         <?php
-        // to prevent abuse (long story)
-        if (md5($_GET['x']) !== '1f6b3872491e0d2ecb0369792627e73f') {
-            echo "<div class='err'>Not authenticated. No requests will be
-                processed.</div>";
-        } else {
+        if (isset($_GET['admin'])) {
+            if (!isset($_SESSION['admin'])) {
+                if (isset($_POST['adminpass']) && md5($_POST['adminpass']) ==
+                    '362146348ab8d990d5f385f7a912e225') {
+                    $_SESSION['admin'] = true;
+                    echo "<div class='err'>Please click
+                        <a href='$_SERVER[REQUEST_URI]'>here</a> to complete
+                        authentication.</div>";
+                } else {
+                    echo "<form method='post' class='err'>Admin password
+                        required for admin requests to be processed:
+                        <input name='adminpass' type='password' />
+                        <input type='submit' value='Go' /></form>";
+                }
+            } else {
+                if (isset($_POST['addpage'])) {
+                    $err = addPage($_POST['url'], $_POST['data']);
+                } else if (isset($_POST['delpage'])) {
+                    $err = delPage($_POST['delpage']);
+                } else if (isset($_POST['addtag'])) {
+                    $err = addTag($_POST['tag']);
+                } else if (isset($_POST['deltag'])) {
+                    $err = delTag($_POST['deltag']);
+                } else if (isset($_POST['addpagetag'])) {
+                    $err = addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
+                } else if (isset($_POST['delpagetag'])) {
+                    list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
+                    $err = delPageTag($pageid, $tagid);
+                }
 
-        if (isset($_POST['addpage'])) {
-            $err = addPage($_POST['url'], $_POST['data']);
-        } else if (isset($_POST['delpage'])) {
-            $err = delPage($_POST['delpage']);
-        } else if (isset($_POST['addtag'])) {
-            $err = addTag($_POST['tag']);
-        } else if (isset($_POST['deltag'])) {
-            $err = delTag($_POST['deltag']);
-        } else if (isset($_POST['addpagetag'])) {
-            $err = addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
-        } else if (isset($_POST['delpagetag'])) {
-            list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
-            $err = delPageTag($pageid, $tagid);
-        }
-
-        if ($err) {
-            $err = htmlspecialchars($err);
-            // TODO add hash to below URL via JavaScript
-            echo "<div class='err'>$err
-                <a href='$_SERVER[REQUEST_URI]'>OK</a></div>";
-        }
-
+                if ($err) {
+                    $err = htmlspecialchars($err);
+                    // TODO add hash to below URL via JavaScript
+                    echo "<div class='err'>$err
+                        <a href='$_SERVER[REQUEST_URI]'>OK</a></div>";
+                }
+            }
         }
         ?>
-        <h1>My pages</h1>
+        <h1>Page listing</h1>
         <?php
             foreach (getPages() as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
@@ -66,26 +79,27 @@
                 echo "
                 <form class='page' method='post' action='#p$id' id='p$id'>
                     <h2 class='url'><a href='$url'>$url</a>
-                        <span class='date'>- $page[date]</span></h2>
+                        <span class='date'>- #$id at $page[date]</span></h2>
                     <div class='data'>$data</div>
                     <div class='tags'>
-                        <input name='pagetag' type='text' />
-                        <button name='addpagetag' type='submit'
+                        <input class='admin' name='pagetag' type='text' />
+                        <button class='admin' name='addpagetag' type='submit'
                             value='$id'>Add tag</button>
-                        <div>&nbsp;</div>";
+                        <div class='admin'>&nbsp;</div>";
                     foreach ($tags as $tagname => $tagid) {
                         echo "
-                        <span class='tag'>$tagname <button name='delpagetag'
-                            value='$id-$tagid'>&times;</button></span>";
+                        <span class='tag'>$tagname <button class='admin'
+                            name='delpagetag' value='$id-$tagid'>&times;
+                            </button></span>";
                     }
                 echo "
                     </div>
-                    <button class='delpage' name='delpage'
+                    <button class='admin delpage' name='delpage'
                         value='$id'>delete this page</button>
                 </form>";
             }
         ?>
-        <form method='post' action='#cp' id='cp'>
+        <form class='admin' method='post' action='#cp' id='cp'>
             <label for='url'>URL</label> <input name='url' type='text' /><br>
             <label for='data'>Data</label><br>
             <textarea name='data'></textarea><br>
@@ -95,12 +109,12 @@
             Tags: <?php
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
-                    echo "<span class='tag'>$name <button name='deltag'
-                        value='$tag[id]'>&times;</button></span>";
+                    echo "<span class='tag'>$name <button class='admin'
+                        name='deltag' value='$tag[id]'>&times;</button></span>";
                 }
             ?>
         </form>
-        <form method='post' action='#ct' id='ct'>
+        <form class='admin' method='post' action='#ct' id='ct'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />
         </form>
