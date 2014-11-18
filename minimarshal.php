@@ -55,6 +55,8 @@ function addPage($url, $data = NULL) {
 
     if (!$url) return "You must provide a URL for your page!";
 
+    // TODO error on duplicate
+
     // add the page stub to the database
     $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
         "(?, NOW(), ?)");
@@ -125,6 +127,8 @@ function addTag($name, $parentId = NULL) {
 
     if (!$name) return "You can't create an empty tag!";
 
+    // TODO error on duplicate
+
     $stmt = $dbh->prepare("INSERT INTO Tags (name, parent_id) VALUES " .
         "(?, ?)");
     $stmt->execute(array($name, $parentId));
@@ -168,6 +172,9 @@ function getTags() {
  */
 function addPageTag($pageid, $tagid) {
     global $dbh;
+
+    // TODO error on nonexistant tag instead of failing silently
+
     $stmt = $dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, ?)");
     $stmt->execute(array($pageid, $tagid));
 }
@@ -186,8 +193,12 @@ function delPageTag($pageid, $tagid) {
     $fetched = $stmt->fetch();
     if ($fetched[0] <= 1) return "Pages must have at least one tag!";
 
+    // TODO don't allow deletion of tag #1 (untagged)
+
     $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
     $stmt->execute(array($pageid, $tagid));
+
+    // TODO retag all posts which now have no tags with untagged
 }
 
 /**

@@ -45,6 +45,7 @@
 
         if ($err) {
             $err = htmlspecialchars($err);
+            // TODO add hash to below URL via JavaScript
             echo "<div class='err'>$err
                 <a href='$_SERVER[REQUEST_URI]'>OK</a></div>";
         }
@@ -61,6 +62,7 @@
                     explode(',', $page['tag_ids'])
                 );
                 $id = $page['id'];
+                // TODO also include a permalink based on ID maybe?
                 echo "
                 <form class='page' method='post' action='#p$id' id='p$id'>
                     <h2 class='url'><a href='$url'>$url</a>
