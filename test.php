@@ -34,7 +34,7 @@
         } else if (isset($_POST['addtag'])) {
             addTag($_POST['tag']);
         } else if (isset($_POST['deltag'])) {
-            // TODO add front and back end
+            delTag($_POST['deltag']);
         } else if (isset($_POST['addpagetag'])) {
             addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
         } else if (isset($_POST['delpagetag'])) {
@@ -86,7 +86,8 @@
             Tags: <?php
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
-                    echo "<span class='tag'>$name</span>";
+                    echo "<span class='tag'>$name <button name='deltag'
+                        value='$tag[id]'>&times;</button></span>";
                 }
             ?>
         </div>

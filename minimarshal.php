@@ -121,6 +121,22 @@ function addTag($name, $parentId = NULL) {
 }
 
 /**
+ * Delete a tag by its id.
+ * @param id The id of the tag to delete.
+ */
+function delTag($id) {
+    global $dbh;
+
+    // delete the actual tag
+    $stmt = $dbh->prepare("DELETE FROM Tags WHERE id = ?");
+    $stmt->execute(array($id));
+
+    // delete the references to that tag in the page <=> tags table
+    $stmt = $dbh->prepare("DELETE FROM PageTags WHERE tag_id = ?");
+    $stmt->execute(array($id));
+}
+
+/**
  * Get all tags.
  */
 function getTags() {
