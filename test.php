@@ -28,18 +28,23 @@
         } else {
 
         if (isset($_POST['addpage'])) {
-            addPage($_POST['url'], $_POST['data']);
+            $err = addPage($_POST['url'], $_POST['data']);
         } else if (isset($_POST['delpage'])) {
-            delPage($_POST['delpage']);
+            $err = delPage($_POST['delpage']);
         } else if (isset($_POST['addtag'])) {
-            addTag($_POST['tag']);
+            $err = addTag($_POST['tag']);
         } else if (isset($_POST['deltag'])) {
-            delTag($_POST['deltag']);
+            $err = delTag($_POST['deltag']);
         } else if (isset($_POST['addpagetag'])) {
-            addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
+            $err = addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
         } else if (isset($_POST['delpagetag'])) {
             list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
-            delPageTag($pageid, $tagid);
+            $err = delPageTag($pageid, $tagid);
+        }
+
+        if ($err) {
+            $err = htmlspecialchars($err);
+            echo "<div class='err'>$err</div>";
         }
 
         }
@@ -82,7 +87,7 @@
             <textarea name='data'></textarea><br>
             <input name='addpage' type='submit' value='Create a new page' />
         </form>
-        <div id='tag-listing' class='tags'>
+        <form method='post' id='tag-listing' class='tags'>
             Tags: <?php
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
@@ -90,7 +95,7 @@
                         value='$tag[id]'>&times;</button></span>";
                 }
             ?>
-        </div>
+        </form>
         <form method='post'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />

@@ -48,6 +48,7 @@ function setup() {
  * Add a page.
  * @param url The URL of the page you are adding.
  * @param data Any extra data to store along with the URL; optional.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function addPage($url, $data = NULL) {
     global $dbh;
@@ -65,6 +66,7 @@ function addPage($url, $data = NULL) {
 /**
  * Delete a page by its id.
  * @param id The id of the page to delete.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function delPage($id) {
     global $dbh;
@@ -82,6 +84,8 @@ function delPage($id) {
  * Get pages by certain criteria.
  * @param tags Get only pages that have all of these tags. Defaults to array().
  * @param excludeTags Get only pages that have none of these. Defaults to array().
+ * @return An array of associative arrays which contain keys id, url, data,
+ *     tag_names, and tag_ids (the last two of which go together).
  */
 function getPages($tags = array(), $excludeTags = array()) {
     global $dbh;
@@ -112,17 +116,21 @@ function getPages($tags = array(), $excludeTags = array()) {
  * Add a tag.
  * @param name The name of the tag you are adding.
  * @param parent Which tag should be this tag's parent; optional.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function addTag($name, $parentId = NULL) {
     global $dbh;
     $stmt = $dbh->prepare("INSERT INTO Tags (name, parent_id) VALUES " .
         "(?, ?)");
     $stmt->execute(array($name, $parentId));
+
+    return "You just added a tag!";
 }
 
 /**
  * Delete a tag by its id.
  * @param id The id of the tag to delete.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function delTag($id) {
     global $dbh;
@@ -138,6 +146,8 @@ function delTag($id) {
 
 /**
  * Get all tags.
+ * @return An array of associative arrays which contain keys name, id,
+ *     parent_name, and parent_id.
  */
 function getTags() {
     global $dbh;
@@ -151,6 +161,7 @@ function getTags() {
  * Add a tag to a page.
  * @param pageid The id of the page to add the tag to.
  * @param tagid The id of the tag to add to the page.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function addPageTag($pageid, $tagid) {
     global $dbh;
@@ -162,6 +173,7 @@ function addPageTag($pageid, $tagid) {
  * Delete a tag from a page.
  * @param pageid The id of the page to remove the tag from.
  * @param tagid The id of the tag to remove from the page.
+ * @return An error message as a string if there was bad input; NULL otherwise.
  */
 function delPageTag($pageid, $tagid) {
     global $dbh;
