@@ -53,6 +53,8 @@ function setup() {
 function addPage($url, $data = NULL) {
     global $dbh;
 
+    if (!$url) return "You must provide a URL for your page!";
+
     // add the page stub to the database
     $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
         "(?, NOW(), ?)");
@@ -120,11 +122,12 @@ function getPages($tags = array(), $excludeTags = array()) {
  */
 function addTag($name, $parentId = NULL) {
     global $dbh;
+
+    if (!$name) return "You can't create an empty tag!";
+
     $stmt = $dbh->prepare("INSERT INTO Tags (name, parent_id) VALUES " .
         "(?, ?)");
     $stmt->execute(array($name, $parentId));
-
-    return "You just added a tag!";
 }
 
 /**
@@ -177,6 +180,12 @@ function addPageTag($pageid, $tagid) {
  */
 function delPageTag($pageid, $tagid) {
     global $dbh;
+
+    $stmt = $dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?");
+    $stmt->execute(array($pageid));
+    $fetched = $stmt->fetch();
+    if ($fetched[0] <= 1) return "Pages must have at least one tag!";
+
     $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
     $stmt->execute(array($pageid, $tagid));
 }
