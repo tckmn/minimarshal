@@ -5,7 +5,8 @@
         <title>MiniMarshal example</title>
         <style>
         .err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
-            padding: 20px; border-radius: 20px; }
+            padding: 20px; border-radius: 20px; position: fixed;
+            width: 90%; }
         .page { margin: 10px; padding-bottom: 15px;
             border-bottom: 1px dotted black; }
         .date { color: #777; font-size: 12px; }
@@ -44,7 +45,8 @@
 
         if ($err) {
             $err = htmlspecialchars($err);
-            echo "<div class='err'>$err</div>";
+            echo "<div class='err'>$err
+                <a href='$_SERVER[REQUEST_URI]'>OK</a></div>";
         }
 
         }
@@ -60,7 +62,7 @@
                 );
                 $id = $page['id'];
                 echo "
-                <form class='page' method='post'>
+                <form class='page' method='post' action='#p$id' id='p$id'>
                     <h2 class='url'><a href='$url'>$url</a>
                         <span class='date'>- $page[date]</span></h2>
                     <div class='data'>$data</div>
@@ -81,13 +83,13 @@
                 </form>";
             }
         ?>
-        <form method='post'>
+        <form method='post' action='#cp' id='cp'>
             <label for='url'>URL</label> <input name='url' type='text' /><br>
             <label for='data'>Data</label><br>
             <textarea name='data'></textarea><br>
             <input name='addpage' type='submit' value='Create a new page' />
         </form>
-        <form method='post' id='tag-listing' class='tags'>
+        <form method='post' action='#tag-listing' id='tag-listing' class='tags'>
             Tags: <?php
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
@@ -96,7 +98,7 @@
                 }
             ?>
         </form>
-        <form method='post'>
+        <form method='post' action='#ct' id='ct'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />
         </form>
