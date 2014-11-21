@@ -28,8 +28,10 @@
         <?php
         if (isset($_GET['admin'])) {
             if (!isset($_SESSION['admin'])) {
-                if (isset($_POST['adminpass']) && md5($_POST['adminpass']) ==
-                    '362146348ab8d990d5f385f7a912e225') {
+                if (isset($_POST['adminpass']) && hash('whirlpool',
+                    $_POST['adminpass']) == 'ff908937e6aa230793ab06fe17d8a78' .
+                    'ad81f0b694b7ac24ad53b8c1dfec2a39cc944be17ce9202b06af71a' .
+                    'eba81d11368cd795730108b87debad13cfa281a526') {
                     $_SESSION['admin'] = true;
                     echo "<div class='err'>Please click
                         <a href='$_SERVER[REQUEST_URI]'>here</a> to complete
