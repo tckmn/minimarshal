@@ -58,7 +58,10 @@ function addPage($url, $data = NULL) {
 
     if (!$url) return "You must provide a URL for your page!";
 
-    // TODO error on duplicate
+    $stmt = $dbh->prepare("SELECT COUNT(*) FROM Pages WHERE url = ?");
+    $stmt->execute(array($url));
+    $fetched = $stmt->fetch();
+    if ($fetched[0] > 0) return "That page already exists!";
 
     // add the page stub to the database
     $stmt = $dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
@@ -130,7 +133,10 @@ function addTag($name, $parentId = NULL) {
 
     if (!$name) return "You can't create an empty tag!";
 
-    // TODO error on duplicate
+    $stmt = $dbh->prepare("SELECT COUNT(*) FROM Tags WHERE name = ?");
+    $stmt->execute(array($name));
+    $fetched = $stmt->fetch();
+    if ($fetched[0] > 0) return "That tag already exists!";
 
     $stmt = $dbh->prepare("INSERT INTO Tags (name, parent_id) VALUES " .
         "(?, ?)");
@@ -144,6 +150,8 @@ function addTag($name, $parentId = NULL) {
  */
 function delTag($id) {
     global $dbh;
+
+    if ($id == 1) return "You can't delete the \"untagged\" tag!";
 
     // delete the actual tag
     $stmt = $dbh->prepare("DELETE FROM Tags WHERE id = ?");
@@ -195,8 +203,6 @@ function delPageTag($pageid, $tagid) {
     $stmt->execute(array($pageid));
     $fetched = $stmt->fetch();
     if ($fetched[0] <= 1) return "Pages must have at least one tag!";
-
-    // TODO don't allow deletion of tag #1 (untagged)
 
     $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
     $stmt->execute(array($pageid, $tagid));
