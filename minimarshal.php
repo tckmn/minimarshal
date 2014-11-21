@@ -184,7 +184,13 @@ function getTags() {
 function addPageTag($pageid, $tagid) {
     global $dbh;
 
-    // TODO error on nonexistant tag instead of failing silently
+    if (!$tagid) return "That tag doesn't exist!";
+
+    $stmt = $dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?
+        AND tag_id = ?");
+    $stmt->execute(array($pageid, $tagid));
+    $fetched = $stmt->fetch();
+    if ($fetched[0] > 0) return "This page already has that tag!";
 
     $stmt = $dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, ?)");
     $stmt->execute(array($pageid, $tagid));
