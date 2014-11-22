@@ -11,22 +11,19 @@
             border-bottom: 1px dotted black; }
         .date { color: #777; font-size: 12px; }
         .data { margin: 15px; }
-        .tags span { padding: 5px; margin: 0px 2px; border-radius: 5px;
-            background-color: #CCF; }
-        .tags span button { background-color: #F00; padding: 0px 2px;
+        .tag { padding: 5px; margin: 0px 2px; border-radius: 5px;
+            background-color: #CCF; line-height: 200%; }
+        .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
-
-        <?php if (!isset($_GET['admin'])) { ?>
-        .admin { display: none; }
-        <?php } ?>
         </style>
         <meta name='viewport' content='width=device-width' />
     </head>
     <body>
         <?php
-        if (isset($_GET['admin'])) {
+        $admin = isset($_GET['admin']);
+        if ($admin) {
             if (!isset($_SESSION['admin'])) {
                 if (isset($_POST['adminpass']) && hash('whirlpool',
                     $_POST['adminpass']) == 'ff908937e6aa230793ab06fe17d8a78' .
@@ -83,21 +80,24 @@
                     <h2 class='url'><a href='$url'>$url</a>
                         <span class='date'>- #$id at $page[date]</span></h2>
                     <div class='data'>$data</div>
-                    <div class='tags'>
-                        <input class='admin' name='pagetag' type='text' />
-                        <button class='admin' name='addpagetag' type='submit'
-                            value='$id'>Add tag</button>
-                        <div class='admin'>&nbsp;</div>";
+                    <div class='tags'>";
+                if ($admin) echo "
+                        <input name='pagetag' type='text' />
+                        <button name='addpagetag' type='submit' value='$id'>
+                            Add tag</button>
+                        <div>&nbsp;</div>";
                     foreach ($tags as $tagname => $tagid) {
-                        echo "
-                        <span class='tag'>$tagname <button class='admin'
-                            name='delpagetag' value='$id-$tagid'>&times;
-                            </button></span>";
+                        // string concatenation is needed because of whitespace
+                        echo "<span class='tag'>$tagname";
+                        if ($admin) echo "&nbsp;<button name='delpagetag'
+                            value='$id-$tagid'>&times;</button>";
+                        echo "</span>";
                     }
                 echo "
-                    </div>
-                    <button class='admin delpage' name='delpage'
-                        value='$id'>delete this page</button>
+                    </div>";
+                if ($admin) echo "<button class='delpage' name='delpage'
+                    value='$id'>delete this page</button>";
+                echo "
                 </form>";
             }
         ?>
@@ -111,14 +111,18 @@
             Tags: <?php
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
-                    echo "<span class='tag'>$name <button class='admin'
-                        name='deltag' value='$tag[id]'>&times;</button></span>";
+                    echo "<span class='tag'>$name";
+                    if ($admin) echo "&nbsp;<button name='deltag'
+                        value='$tag[id]'>&times;</button>";
+                    echo "</span>";
                 }
             ?>
         </form>
-        <form class='admin' method='post' action='#ct' id='ct'>
+        <?php if ($admin) { ?>
+        <form method='post' action='#ct' id='ct'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />
         </form>
+        <?php } ?>
     </body>
 </html>
