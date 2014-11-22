@@ -11,8 +11,8 @@
             border-bottom: 1px dotted black; }
         .date { color: #777; font-size: 12px; }
         .data { margin: 15px; }
-        .tag { padding: 5px; margin: 0px 2px; border-radius: 5px;
-            background-color: #CCF; line-height: 200%; }
+        .tag { color: black; padding: 5px; margin: 0px 2px; border-radius: 5px;
+            background-color: #CCF; line-height: 200%; text-decoration: none;  }
         .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
         .nobr { white-space: nowrap; }
@@ -23,6 +23,14 @@
     </head>
     <body>
         <?php
+
+        function taghtml($tag, $adminextra = '') {
+            $qstr = $_SERVER['QUERY_STRING'];
+            $qstr .= ($qstr ? '&' : '') . "ti=" . urlencode($tag);
+            if (!$admin) $adminextra = '';
+            return "<a href='?$qstr' class='tag'>$tag$adminextra</a>";
+        }
+
         $admin = isset($_GET['admin']);
         if ($admin) {
             if (!isset($_SESSION['admin'])) {
@@ -41,10 +49,16 @@
                         <input type='submit' value='Go' /></form>";
                 }
             } else {
+                $editpage = FALSE;
                 if (isset($_POST['addpage'])) {
                     $err = $mm->addPage($_POST['url'], $_POST['data']);
                 } else if (isset($_POST['delpage'])) {
                     $err = $mm->delPage($_POST['delpage']);
+                } else if (isset($_POST['editpage'])) {
+                    $editpage = $_POST['editpage'];
+                } else if (isset($_POST['saveeditpage'])) {
+                    $err = $mm->setPageData($_POST['saveeditpage'],
+                        $_POST['editpagedata']);
                 } else if (isset($_POST['addtag'])) {
                     $err = $mm->addTag($_POST['tag']);
                 } else if (isset($_POST['deltag'])) {
@@ -76,7 +90,16 @@
         ?>
         <h1>Page listing</h1>
         <?php
-            foreach ($mm->getPages() as $page) {
+            $ti = isset($_GET['ti']) ? array_map('urldecode', explode('-',
+                $_GET['ti'])) : array();
+            $te = isset($_GET['te']) ? array_map('urldecode', explode('-',
+                $_GET['te'])) : array();
+            echo "<p>Tags to include:";
+            foreach ($ti as $tix) { echo taghtml($tix); }
+            echo "</p><p>Tags to exclude:";
+            foreach ($te as $tex) { echo taghtml($tex); }
+            echo "</p>";
+            foreach ($mm->getPages($ti, $te) as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
                 $tags = array_combine(
@@ -84,12 +107,18 @@
                     explode(',', $page['tag_ids'])
                 );
                 $id = $page['id'];
+                $datadiv = ($id == $editpage) ? 'textarea' : 'div';
                 // TODO also include a permalink based on ID maybe?
                 echo "
                 <form class='page' method='post' action='#p$id' id='p$id'>
                     <h2 class='url'><a href='$url'>$url</a>
-                        <span class='date'>- #$id at $page[date]</span></h2>
-                    <div class='data'>$data</div>
+                        <span class='date'>- #$id at $page[date]</span></h2>";
+                if ($id == $editpage) echo "
+                    <textarea name='editpagedata'>$data</textarea><br/>
+                    <button name='saveeditpage' value='$id'>save edits</button>";
+                else echo "
+                    <div class='data'>$data</div>";
+                echo "
                     <div class='tags'>";
                 if ($admin) echo "
                         <input name='pagetag' type='text' />
@@ -97,17 +126,15 @@
                             Add tag</button>
                         <div>&nbsp;</div>";
                     foreach ($tags as $tagname => $tagid) {
-                        // string concatenation is needed because of whitespace
-                        echo "<span class='tag'>$tagname";
-                        if ($admin) echo "<span class='nobr'>&nbsp;<button
+                        echo taghtml($tagname, "<span class='nobr'>&nbsp;<button
                             name='delpagetag' value='$id-$tagid'>&times;" .
-                            "</button></span>";
-                        echo "</span>";
+                            "</button></span>");
                     }
                 echo "
                     </div>";
-                if ($admin) echo "<button class='delpage' name='delpage'
-                    value='$id'>delete this page</button>";
+                if ($admin) echo "
+                    <button name='editpage' value='$id'>edit page description</button>
+                    <button class='delpage' name='delpage' value='$id'>delete page</button>";
                 echo "
                 </form>";
             }
@@ -121,11 +148,9 @@
         <form method='post' action='#tag-listing' id='tag-listing' class='tags'>
             Tags: <?php
                 foreach ($mm->getTags() as $tag) {
-                    $name = htmlspecialchars($tag['name']);
-                    echo "<span class='tag'>$name";
-                    if ($admin) echo "<span class='nobr'>&nbsp;<button
-                        name='deltag' value='$tag[id]'>&times;</button></span>";
-                    echo "</span>";
+                    $tagname = htmlspecialchars($tag['name']);
+                    echo taghtml($tagname, "<span class='nobr'>&nbsp;<button
+                        name='deltag' value='$tag[id]'>&times;</button></span>");
                 }
             ?>
         </form>

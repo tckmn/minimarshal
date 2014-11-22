@@ -104,22 +104,25 @@ class MiniMarshal {
      * Get pages by certain criteria.
      * @param tags Get only pages that have all of these tags. Defaults to array().
      * @param excludeTags Get only pages that have none of these. Defaults to array().
+     * @param by Whether to search for tag id or name. Defaults to "name", can be "id".
      * @return An array of associative arrays which contain keys id, url, data,
      *     tag_names, and tag_ids (the last two of which go together).
      */
-    function getPages($tags = array(), $excludeTags = array()) {
+    function getPages($tags = array(), $excludeTags = array(), $by = 'name') {
+        $inClause = ($by == 'id') ? 'IN (t.id)' : 'IN (t.name)';
+
         // for $tags and $excludeTags (" WHERE ... AND ... AND ...")
         $whereClause = '';
         foreach ($tags as $tag) {
-            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? IN (t.name)";
+            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? $inClause";
         }
         foreach ($excludeTags as $excludeTag) {
-            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? NOT IN (t.name)";
+            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? NOT $inClause";
         }
 
         // this query is terrifying
-        $stmt = $this->dbh->prepare("SELECT p.*, GROUP_CONCAT(t.id) AS tag_ids, " . "
-            GROUP_CONCAT(t.name) AS tag_names FROM Pages p " .
+        $stmt = $this->dbh->prepare("SELECT p.*, GROUP_CONCAT(t.id) AS tag_ids, " .
+            "GROUP_CONCAT(t.name) AS tag_names FROM Pages p " .
             "INNER JOIN Tags t ON t.id IN (SELECT tag_id FROM PageTags " .
             "WHERE page_id = p.id)$whereClause GROUP BY p.id;");
 
@@ -128,6 +131,16 @@ class MiniMarshal {
         else $stmt->execute(array_merge($tags, $excludeTags));
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Set the data of a page by its id.
+     * @param id The id of the page you are setting the data of.
+     * @param data The data you wish to set this page to have.
+     */
+    function setPageData($id, $data) {
+        $stmt = $this->dbh->prepare("UPDATE Pages SET data = ? WHERE id = ?");
+        $stmt->execute(array($data, $id));
     }
 
     /**
