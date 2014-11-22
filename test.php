@@ -1,4 +1,4 @@
-<?php require_once('minimarshal.php'); ?>
+<?php require_once('minimarshal.php'); $mm = new MiniMarshal(); ?>
 <!DOCTYPE html>
 <html lang='en'>
     <head>
@@ -42,18 +42,19 @@
                 }
             } else {
                 if (isset($_POST['addpage'])) {
-                    $err = addPage($_POST['url'], $_POST['data']);
+                    $err = $mm->addPage($_POST['url'], $_POST['data']);
                 } else if (isset($_POST['delpage'])) {
-                    $err = delPage($_POST['delpage']);
+                    $err = $mm->delPage($_POST['delpage']);
                 } else if (isset($_POST['addtag'])) {
-                    $err = addTag($_POST['tag']);
+                    $err = $mm->addTag($_POST['tag']);
                 } else if (isset($_POST['deltag'])) {
-                    $err = delTag($_POST['deltag']);
+                    $err = $mm->delTag($_POST['deltag']);
                 } else if (isset($_POST['addpagetag'])) {
-                    $err = addPageTag($_POST['addpagetag'], tagIdFromName($_POST['pagetag']));
+                    $err = $mm->addPageTag($_POST['addpagetag'],
+                        $mm->tagIdFromName($_POST['pagetag']));
                 } else if (isset($_POST['delpagetag'])) {
                     list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
-                    $err = delPageTag($pageid, $tagid);
+                    $err = $mm->delPageTag($pageid, $tagid);
                 }
 
                 if ($err) {
@@ -75,7 +76,7 @@
         ?>
         <h1>Page listing</h1>
         <?php
-            foreach (getPages() as $page) {
+            foreach ($mm->getPages() as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
                 $tags = array_combine(
@@ -119,7 +120,7 @@
         </form>
         <form method='post' action='#tag-listing' id='tag-listing' class='tags'>
             Tags: <?php
-                foreach (getTags() as $tag) {
+                foreach ($mm->getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
                     echo "<span class='tag'>$name";
                     if ($admin) echo "<span class='nobr'>&nbsp;<button
