@@ -15,6 +15,7 @@
             background-color: #CCF; line-height: 200%; }
         .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
+        .nobr { white-space: nowrap; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
         </style>
@@ -89,8 +90,9 @@
                     foreach ($tags as $tagname => $tagid) {
                         // string concatenation is needed because of whitespace
                         echo "<span class='tag'>$tagname";
-                        if ($admin) echo "&nbsp;<button name='delpagetag'
-                            value='$id-$tagid'>&times;</button>";
+                        if ($admin) echo "<span class='nobr'>&nbsp;<button
+                            name='delpagetag' value='$id-$tagid'>&times;" .
+                            "</button></span>";
                         echo "</span>";
                     }
                 echo "
@@ -112,8 +114,8 @@
                 foreach (getTags() as $tag) {
                     $name = htmlspecialchars($tag['name']);
                     echo "<span class='tag'>$name";
-                    if ($admin) echo "&nbsp;<button name='deltag'
-                        value='$tag[id]'>&times;</button>";
+                    if ($admin) echo "<span class='nobr'>&nbsp;<button
+                        name='deltag' value='$tag[id]'>&times;</button></span>";
                     echo "</span>";
                 }
             ?>
