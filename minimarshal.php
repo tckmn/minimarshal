@@ -131,8 +131,10 @@ function getPages($tags = array(), $excludeTags = array()) {
 function addTag($name, $parentId = NULL) {
     global $dbh;
 
+    // sanity check
     if (!$name) return "You can't create an empty tag!";
 
+    // no duplicate tags
     $stmt = $dbh->prepare("SELECT COUNT(*) FROM Tags WHERE name = ?");
     $stmt->execute(array($name));
     $fetched = $stmt->fetch();
@@ -160,6 +162,12 @@ function delTag($id) {
     // delete the references to that tag in the page <=> tags table
     $stmt = $dbh->prepare("DELETE FROM PageTags WHERE tag_id = ?");
     $stmt->execute(array($id));
+
+    // retag anything that now has no tags with [untagged]
+    $stmt = $dbh->prepare("INSERT INTO PageTags (page_id, tag_id) " .
+        "SELECT id, 1 FROM Pages " .
+        "LEFT OUTER JOIN PageTags ON page_id = id WHERE page_id IS NULL");
+    $stmt->execute();
 }
 
 /**
@@ -186,6 +194,7 @@ function addPageTag($pageid, $tagid) {
 
     if (!$tagid) return "That tag doesn't exist!";
 
+    // avoid duplicate db entries (and/or confusing the user)
     $stmt = $dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?
         AND tag_id = ?");
     $stmt->execute(array($pageid, $tagid));
@@ -205,6 +214,7 @@ function addPageTag($pageid, $tagid) {
 function delPageTag($pageid, $tagid) {
     global $dbh;
 
+    // don't let user delete last tag
     $stmt = $dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?");
     $stmt->execute(array($pageid));
     $fetched = $stmt->fetch();
@@ -212,8 +222,6 @@ function delPageTag($pageid, $tagid) {
 
     $stmt = $dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
     $stmt->execute(array($pageid, $tagid));
-
-    // TODO retag all posts which now have no tags with untagged
 }
 
 /**
