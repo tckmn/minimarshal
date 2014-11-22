@@ -4,7 +4,7 @@
     <head>
         <title>MiniMarshal example</title>
         <style>
-        .err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
+        #err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
             padding: 20px; border-radius: 20px; position: fixed;
             width: 90%; }
         .page { margin: 10px; padding-bottom: 15px;
@@ -58,9 +58,17 @@
 
                 if ($err) {
                     $err = htmlspecialchars($err);
-                    // TODO add hash to below URL via JavaScript
-                    echo "<div class='err'>$err
-                        <a href='$_SERVER[REQUEST_URI]'>OK</a></div>";
+                    echo "<div id='err'>$err <a id='errlink'
+                        href='$_SERVER[REQUEST_URI]'>OK</a></div>";
+                    // some simple JS to make the OK button just hide the err
+                    echo "<script type='text/javascript'>
+                        var el = document.getElementById('errlink');
+                        el.href = window.location.hash || '#';
+                        el.onclick = function(e) {
+                            e.preventDefault();
+                            document.getElementById('err').style.display = 'none';
+                        }
+                    </script>";
                 }
             }
         }
