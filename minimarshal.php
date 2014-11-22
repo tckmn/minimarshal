@@ -114,17 +114,29 @@ class MiniMarshal {
         // for $tags and $excludeTags (" WHERE ... AND ... AND ...")
         $whereClause = '';
         foreach ($tags as $tag) {
-            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? $inClause";
+            $whereClause .= ($whereClause ? 'WHERE' : ' AND') . " ? $inClause";
         }
         foreach ($excludeTags as $excludeTag) {
-            $whereClause .= ($whereClause ? ' WHERE' : ' AND') . " ? NOT $inClause";
+            $whereClause .= ($whereClause ? 'WHERE' : ' AND') . " ? NOT $inClause";
         }
 
         // this query is terrifying
-        $stmt = $this->dbh->prepare("SELECT p.*, GROUP_CONCAT(t.id) AS tag_ids, " .
-            "GROUP_CONCAT(t.name) AS tag_names FROM Pages p " .
-            "INNER JOIN Tags t ON t.id IN (SELECT tag_id FROM PageTags " .
-            "WHERE page_id = p.id)$whereClause GROUP BY p.id;");
+        $stmt = $this->dbh->prepare("
+            SELECT
+                p.*,
+                GROUP_CONCAT(DISTINCT(pt.tag_id)) AS tag_ids,
+                GROUP_CONCAT(DISTINCT(
+                    (SELECT name FROM Tags t2 WHERE t2.id IN (pt.tag_id))
+                )) AS tag_names
+            FROM Pages p
+            INNER JOIN Tags t
+                ON t.id IN
+                (SELECT tag_id FROM PageTags WHERE page_id = p.id)
+            INNER JOIN PageTags pt
+                ON pt.page_id = p.id
+            $whereClause
+            GROUP BY p.id
+        ");
 
         // execute without args if no $tags or $excludeTags
         if ($whereClause === '') $stmt->execute();
