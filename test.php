@@ -1,6 +1,7 @@
-<?php require_once('minimarshal.php'); $mm = new MiniMarshal(); ?><?php
+<?php require_once('minimarshal.php');
+$mm = new MiniMarshal();
+$admin = isset($_GET['admin']); ?><?php
 // TODO verify tags exist
-// TODO ability to remove
 // TODO fix ugly thing in which both buttons do the same thing
 // TODO tag autocomplete
 if ($_POST['txtti']) {
@@ -12,11 +13,10 @@ if ($_POST['txtti']) {
 <!DOCTYPE html>
 <html lang='en'>
     <head>
-        <title>MiniMarshal example</title>
+        <title>Keyboard Fire page listing</title>
         <style>
         #err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
-            padding: 20px; border-radius: 20px; position: fixed;
-            width: 90%; }
+            padding: 20px; border-radius: 20px; position: fixed; }
         #container { max-width: 800px; margin: 0px auto; }
         #filter { border: 1px dotted black; border-radius: 15px; padding: 5px; }
         .page { margin: 10px; padding-bottom: 15px;
@@ -35,7 +35,6 @@ if ($_POST['txtti']) {
     </head>
     <body><div id='container'>
         <?php
-
         function addTagToQstr($tag, $qname, $toggle = FALSE) {
             parse_str($_SERVER['QUERY_STRING'], $qstr);
             if (isset($qstr[$qname])) {
@@ -56,12 +55,12 @@ if ($_POST['txtti']) {
         }
 
         function taghtml($tag, $adminextra = '', $qname = 'ti', $toggle = FALSE) {
+            global $admin; // TODO gah ugly global, remove
             $qstr = addTagToQstr($tag, $qname, $toggle);
             if (!$admin) $adminextra = '';
             return "<a href='?$qstr' class='tag'>$tag$adminextra</a>";
         }
 
-        $admin = isset($_GET['admin']);
         if ($admin) {
             if (!isset($_SESSION['admin'])) {
                 if (isset($_POST['adminpass']) && hash('whirlpool',
