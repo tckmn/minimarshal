@@ -1,6 +1,5 @@
 <?php require_once('minimarshal.php'); $mm = new MiniMarshal(); ?><?php
 // TODO verify tags exist
-// TODO don't add duplicates
 // TODO ability to remove
 // TODO fix ugly thing in which both buttons do the same thing
 // TODO tag autocomplete
@@ -35,18 +34,27 @@ if ($_POST['txtti']) {
     <body>
         <?php
 
-        function addTagToQstr($tag, $qname) {
+        function addTagToQstr($tag, $qname, $toggle = FALSE) {
             parse_str($_SERVER['QUERY_STRING'], $qstr);
             if (isset($qstr[$qname])) {
-                $qstr[$qname] .= '-' . $tag;
+                $qvals = explode('-', $qstr[$qname]);
+                $qsearch = array_search($tag, $qvals);
+
+                if ($qsearch !== FALSE) { if ($toggle) unset($qvals[$qsearch]); }
+                else $qvals[] = $tag;
+
+                $qstr[$qname] = implode('-', $qvals);
+
+                // if last tag removed, it becomes "ti=" which borks the thing
+                if (!$qstr[$qname]) unset($qstr[$qname]);
             } else {
                 $qstr[$qname] = $tag;
             }
             return http_build_query($qstr);
         }
 
-        function taghtml($tag, $adminextra = '') {
-            $qstr = addTagToQstr($tag, 'ti');
+        function taghtml($tag, $adminextra = '', $qname = 'ti', $toggle = FALSE) {
+            $qstr = addTagToQstr($tag, $qname, $toggle);
             if (!$admin) $adminextra = '';
             return "<a href='?$qstr' class='tag'>$tag$adminextra</a>";
         }
@@ -114,11 +122,13 @@ if ($_POST['txtti']) {
                 $_GET['ti'])) : array();
             $te = isset($_GET['te']) ? array_map('urldecode', explode('-',
                 $_GET['te'])) : array();
-            echo "<form method='post'><p>Tags to include:";
-            foreach ($ti as $tix) { echo taghtml($tix); }
+            echo "<p>Click any tag in the include/exclude list below to remove
+                it. Click any other tag on the page to add it to the include list.";
+            echo "<form method='post'><p>Tags to include: ";
+            foreach ($ti as $tix) { echo taghtml($tix, '', 'ti', TRUE); }
             echo " <input name='txtti' type='text' />
-                <input name='ati' type='submit' value='Add' /></p><p>Tags to exclude:";
-            foreach ($te as $tex) { echo taghtml($tex); }
+                <input name='ati' type='submit' value='Add' /></p><p>Tags to exclude: ";
+            foreach ($te as $tex) { echo taghtml($tex, '', 'te', TRUE); }
             echo " <input name='txtte' type='text' />
                 <input name='ate' type='submit' value='Add' /></p></form>";
             foreach ($mm->getPages($ti, $te) as $page) {
