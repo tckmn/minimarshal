@@ -17,6 +17,8 @@ if ($_POST['txtti']) {
         #err { background-color: #FEE; /*FI*/ color: #F00; /*FUM*/
             padding: 20px; border-radius: 20px; position: fixed;
             width: 90%; }
+        #container { max-width: 800px; margin: 0px auto; }
+        #filter { border: 1px dotted black; border-radius: 15px; padding: 5px; }
         .page { margin: 10px; padding-bottom: 15px;
             border-bottom: 1px dotted black; }
         .date { color: #777; font-size: 12px; }
@@ -31,7 +33,7 @@ if ($_POST['txtti']) {
         </style>
         <meta name='viewport' content='width=device-width' />
     </head>
-    <body>
+    <body><div id='container'>
         <?php
 
         function addTagToQstr($tag, $qname, $toggle = FALSE) {
@@ -116,15 +118,19 @@ if ($_POST['txtti']) {
             }
         }
         ?>
-        <h1>Page listing</h1>
+        <h1>Keyboard Fire page listing</h1>
         <?php
             $ti = isset($_GET['ti']) ? array_map('urldecode', explode('-',
                 $_GET['ti'])) : array();
             $te = isset($_GET['te']) ? array_map('urldecode', explode('-',
                 $_GET['te'])) : array();
-            echo "<p>Click any tag in the include/exclude list below to remove
-                it. Click any other tag on the page to add it to the include list.";
-            echo "<form method='post'><p>Tags to include: ";
+            echo "<p>Hello! This is a listing of all pages
+                on the site, along with tags to make them easy to find for you.
+                </p><p>You can filter the pages by tags that you want them to
+                include or exclude by typing in the text boxes, or by clicking
+                any tag in the page listing below. Click any tag you are
+                filtering by to remove it.</p>";
+            echo "<form id='filter' method='post'><p>Tags to include: ";
             foreach ($ti as $tix) { echo taghtml($tix, '', 'ti', TRUE); }
             echo " <input name='txtti' type='text' />
                 <input name='ati' type='submit' value='Add' /></p><p>Tags to exclude: ";
@@ -194,5 +200,5 @@ if ($_POST['txtti']) {
             <input name='addtag' type='submit' value='Create a new tag' />
         </form>
         <?php } ?>
-    </body>
+    </div></body>
 </html>
