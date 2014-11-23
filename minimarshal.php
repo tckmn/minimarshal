@@ -104,20 +104,36 @@ class MiniMarshal {
      * Get pages by certain criteria.
      * @param tags Get only pages that have all of these tags. Defaults to array().
      * @param excludeTags Get only pages that have none of these. Defaults to array().
-     * @param by Whether to search for tag id or name. Defaults to "name", can be "id".
      * @return An array of associative arrays which contain keys id, url, data,
      *     tag_names, and tag_ids (the last two of which go together).
      */
-    function getPages($tags = array(), $excludeTags = array(), $by = 'name') {
-        $inClause = ($by == 'id') ? 'IN (t.id)' : 'IN (t.name)';
-
-        // for $tags and $excludeTags (" WHERE ... AND ... AND ...")
-        $whereClause = '';
+    function getPages($tags = array(), $excludeTags = array()) {
+        // for $tags and $excludeTags
+        $filterClauses = '';
+        $i = 1;
         foreach ($tags as $tag) {
-            $whereClause .= ($whereClause ? 'WHERE' : ' AND') . " ? $inClause";
+            $filterClauses .= "
+                INNER JOIN Tags t$i
+                    ON EXISTS
+                        (SELECT * FROM PageTags
+                            WHERE page_id = p.id
+                            AND tag_id = t$i.id)
+                    AND ? = t$i.name
+            ";
+            ++$i;
         }
+        // TODO ugly code duplication is ugly
+        // oh and also this doesn't even work
         foreach ($excludeTags as $excludeTag) {
-            $whereClause .= ($whereClause ? 'WHERE' : ' AND') . " ? NOT $inClause";
+            $filterClauses .= "
+                INNER JOIN Tags t$i
+                    ON EXISTS
+                        (SELECT * FROM PageTags
+                            WHERE page_id = p.id
+                            AND tag_id = t$i.id)
+                    AND ? != t$i.name
+            ";
+            ++$i;
         }
 
         // this query is terrifying
@@ -126,20 +142,17 @@ class MiniMarshal {
                 p.*,
                 GROUP_CONCAT(DISTINCT(pt.tag_id)) AS tag_ids,
                 GROUP_CONCAT(DISTINCT(
-                    (SELECT name FROM Tags t2 WHERE t2.id IN (pt.tag_id))
+                    (SELECT name FROM Tags t WHERE t.id IN (pt.tag_id))
                 )) AS tag_names
             FROM Pages p
-            INNER JOIN Tags t
-                ON t.id IN
-                (SELECT tag_id FROM PageTags WHERE page_id = p.id)
             INNER JOIN PageTags pt
                 ON pt.page_id = p.id
-            $whereClause
+            $filterClauses
             GROUP BY p.id
         ");
 
         // execute without args if no $tags or $excludeTags
-        if ($whereClause === '') $stmt->execute();
+        if ($filterClauses === '') $stmt->execute();
         else $stmt->execute(array_merge($tags, $excludeTags));
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

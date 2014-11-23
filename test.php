@@ -1,4 +1,14 @@
-<?php require_once('minimarshal.php'); $mm = new MiniMarshal(); ?>
+<?php require_once('minimarshal.php'); $mm = new MiniMarshal(); ?><?php
+// TODO verify tags exist
+// TODO don't add duplicates
+// TODO ability to remove
+// TODO fix ugly thing in which both buttons do the same thing
+if ($_POST['txtti']) {
+    header("Location: ?" . addTagToQstr($_POST['txtti'], 'ti'));
+} else if ($_POST['txtte']) {
+    header("Location: ?" . addTagToQstr($_POST['txtte'], 'te'));
+}
+?>
 <!DOCTYPE html>
 <html lang='en'>
     <head>
@@ -24,9 +34,18 @@
     <body>
         <?php
 
+        function addTagToQstr($tag, $qname) {
+            parse_str($_SERVER['QUERY_STRING'], $qstr);
+            if (isset($qstr[$qname])) {
+                $qstr[$qname] .= '-' . $tag;
+            } else {
+                $qstr[$qname] = $tag;
+            }
+            return http_build_query($qstr);
+        }
+
         function taghtml($tag, $adminextra = '') {
-            $qstr = $_SERVER['QUERY_STRING'];
-            $qstr .= ($qstr ? '&' : '') . "ti=" . urlencode($tag);
+            $qstr = addTagToQstr($tag, 'ti');
             if (!$admin) $adminextra = '';
             return "<a href='?$qstr' class='tag'>$tag$adminextra</a>";
         }
@@ -94,11 +113,13 @@
                 $_GET['ti'])) : array();
             $te = isset($_GET['te']) ? array_map('urldecode', explode('-',
                 $_GET['te'])) : array();
-            echo "<p>Tags to include:";
+            echo "<form method='post'><p>Tags to include:";
             foreach ($ti as $tix) { echo taghtml($tix); }
-            echo "</p><p>Tags to exclude:";
+            echo " <input name='txtti' type='text' />
+                <input name='ati' type='submit' value='Add' /></p><p>Tags to exclude:";
             foreach ($te as $tex) { echo taghtml($tex); }
-            echo "</p>";
+            echo " <input name='txtte' type='text' />
+                <input name='ate' type='submit' value='Add' /></p></form>";
             foreach ($mm->getPages($ti, $te) as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
@@ -139,12 +160,14 @@
                 </form>";
             }
         ?>
-        <form class='admin' method='post' action='#cp' id='cp'>
+        <?php if ($admin) { ?>
+        <form method='post' action='#cp' id='cp'>
             <label for='url'>URL</label> <input name='url' type='text' /><br>
             <label for='data'>Data</label><br>
             <textarea name='data'></textarea><br>
             <input name='addpage' type='submit' value='Create a new page' />
         </form>
+        <?php } ?>
         <form method='post' action='#tag-listing' id='tag-listing' class='tags'>
             Tags: <?php
                 foreach ($mm->getTags() as $tag) {
