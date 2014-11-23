@@ -122,21 +122,20 @@ class MiniMarshal {
             ";
             ++$i;
         }
-        // TODO ugly code duplication is ugly
-        // oh and also this doesn't even work
         foreach ($excludeTags as $excludeTag) {
             $filterClauses .= "
-                INNER JOIN Tags t$i
+                LEFT OUTER JOIN Tags t$i
                     ON EXISTS
                         (SELECT * FROM PageTags
                             WHERE page_id = p.id
                             AND tag_id = t$i.id)
-                    AND ? != t$i.name
+                    AND ? = t$i.name
+                    WHERE t$i.id IS NULL
             ";
             ++$i;
         }
 
-        // this query is terrifying
+        // this query is terrifying (when you add the $filterClauses part)
         $stmt = $this->dbh->prepare("
             SELECT
                 p.*,

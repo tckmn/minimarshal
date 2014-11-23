@@ -3,6 +3,7 @@
 // TODO don't add duplicates
 // TODO ability to remove
 // TODO fix ugly thing in which both buttons do the same thing
+// TODO tag autocomplete
 if ($_POST['txtti']) {
     header("Location: ?" . addTagToQstr($_POST['txtti'], 'ti'));
 } else if ($_POST['txtte']) {
