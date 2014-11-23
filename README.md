@@ -2,6 +2,8 @@
 
 A versatile tagging and categorization system, in a single PHP file.
 
+**The following is wrong as of most of the life of this project!!!** However, I have not updated it yet. PLEASE IGNORE THE FOLLOWING!
+
 To use:
 
 1. Copy minimarshal.php to your website
