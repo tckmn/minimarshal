@@ -77,7 +77,7 @@ class MiniMarshal {
 
         // add the page stub to the database
         $stmt = $this->dbh->prepare("INSERT INTO Pages (url, date, data) VALUES " .
-            "(?, NOW(), ?)");
+            "(?, UTC_TIMESTAMP(), ?)");
         $stmt->execute(array($url, $data));
 
         // tag it with untagged first

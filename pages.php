@@ -30,7 +30,7 @@ if ($_POST['txtti']) {
             border-bottom: 1px dotted black; }
         .date { color: #777; font-size: 12px; }
         .data { margin: 15px; }
-        .tag { color: black; padding: 5px; margin: 0px 2px; border-radius: 5px;
+        .tag { color: black !important; padding: 5px; margin: 0px 2px; border-radius: 5px;
             background-color: #CCF; line-height: 200%; text-decoration: none;  }
         .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
@@ -148,7 +148,7 @@ if ($_POST['txtti']) {
                             </p><p>You can filter the pages by tags that you want them to
                             include or exclude by typing in the text boxes, or by clicking
                             any tag in the page listing below. Click any tag you are
-                            filtering by to remove it.</p>";
+                            filtering by to remove it.</p><p>Note: All times are in UTC.</p>";
                         echo "<form id='filter' method='post'><p>Tags to include: ";
                         foreach ($ti as $tix) { echo taghtml($tix, '', 'ti', TRUE); }
                         echo " <input name='txtti' type='text' />
