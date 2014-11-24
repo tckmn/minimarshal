@@ -233,14 +233,27 @@ class MiniMarshal {
         if (!$tagid) return "That tag doesn't exist!";
 
         // avoid duplicate db entries (and/or confusing the user)
-        $stmt = $this->dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?
+        $dupstmt = $this->dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?
             AND tag_id = ?");
-        $stmt->execute(array($pageid, $tagid));
-        $fetched = $stmt->fetch();
+        $dupstmt->execute(array($pageid, $tagid));
+        $fetched = $dupstmt->fetch();
         if ($fetched[0] > 0) return "This page already has that tag!";
 
-        $stmt = $this->dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, ?)");
-        $stmt->execute(array($pageid, $tagid));
+        $putstmt = $this->dbh->prepare("INSERT INTO PageTags (page_id, tag_id) VALUES (?, ?)");
+        $putstmt->execute(array($pageid, $tagid));
+
+        // is there a parent (are there parents) to also add?
+        while (TRUE) {
+            $stmt = $this->dbh->prepare("SELECT parent_id FROM Tags WHERE id = ?");
+            $stmt->execute(array($tagid));
+            $fetched = $stmt->fetch();
+            if (!$fetched[0]) break;
+            $tagid = $fetched[0];
+
+            $dupstmt->execute(array($pageid, $tagid));
+            $fetched = $dupstmt->fetch();
+            if ($fetched[0] == 0) $putstmt->execute(array($pageid, $tagid));
+        }
     }
 
     /**
@@ -251,13 +264,26 @@ class MiniMarshal {
      */
     function delPageTag($pageid, $tagid) {
         // don't let user delete last tag
-        $stmt = $this->dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?");
-        $stmt->execute(array($pageid));
-        $fetched = $stmt->fetch();
+        $laststmt = $this->dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?");
+        $laststmt->execute(array($pageid));
+        $fetched = $laststmt->fetch();
         if ($fetched[0] <= 1) return "Pages must have at least one tag!";
 
-        $stmt = $this->dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
-        $stmt->execute(array($pageid, $tagid));
+        $delstmt = $this->dbh->prepare("DELETE FROM PageTags WHERE page_id = ? AND tag_id = ?");
+        $delstmt->execute(array($pageid, $tagid));
+
+        // any child tags to delete?
+        while (TRUE) {
+            $stmt = $this->dbh->prepare("SELECT id FROM Tags WHERE parent_id = ?");
+            $stmt->execute(array($tagid));
+            $fetched = $stmt->fetch();
+            if (!$fetched[0]) break;
+            $tagid = $fetched[0];
+
+            $laststmt->execute(array($pageid, $tagid));
+            $fetched = $laststmt->fetch();
+            if ($fetched[0] == 0) $delstmt->execute(array($pageid, $tagid));
+        }
     }
 
     /**

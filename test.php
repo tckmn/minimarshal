@@ -64,15 +64,15 @@ if ($_POST['txtti']) {
         if ($admin) {
             if (!isset($_SESSION['admin'])) {
                 if (isset($_POST['adminpass']) && hash('whirlpool',
-                    $_POST['adminpass']) == 'ff908937e6aa230793ab06fe17d8a78' .
-                    'ad81f0b694b7ac24ad53b8c1dfec2a39cc944be17ce9202b06af71a' .
-                    'eba81d11368cd795730108b87debad13cfa281a526') {
+                    $_POST['adminpass']) == 'bb327808a3caf17b56229e59a0851f1' .
+                    '0d3e0b8c97b3b66af4fb3ecb6e657a6839fd0dc73ac9aba12355dbb' .
+                    '82dcae4537c2eabc8d9da85ae91a7fe84c5a726cea') {
                     $_SESSION['admin'] = true;
-                    echo "<div class='err'>Please click
+                    echo "<div id='err'>Please click
                         <a href='$_SERVER[REQUEST_URI]'>here</a> to complete
                         authentication.</div>";
                 } else {
-                    echo "<form method='post' class='err'>Admin password
+                    echo "<form method='post' id='err'>Admin password
                         required for admin requests to be processed:
                         <input name='adminpass' type='password' />
                         <input type='submit' value='Go' /></form>";
@@ -89,7 +89,8 @@ if ($_POST['txtti']) {
                     $err = $mm->setPageData($_POST['saveeditpage'],
                         $_POST['editpagedata']);
                 } else if (isset($_POST['addtag'])) {
-                    $err = $mm->addTag($_POST['tag']);
+                    $err = $mm->addTag($_POST['tag'], ($_POST['parenttag'] == "" ?
+                        NULL : $mm->tagIdFromName($_POST['parenttag'])));
                 } else if (isset($_POST['deltag'])) {
                     $err = $mm->delTag($_POST['deltag']);
                 } else if (isset($_POST['addpagetag'])) {
@@ -196,6 +197,7 @@ if ($_POST['txtti']) {
         <?php if ($admin) { ?>
         <form method='post' action='#ct' id='ct'>
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
+            <label for='parenttag'>Parent</label> <input name='parenttag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />
         </form>
         <?php } ?>
