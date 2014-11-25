@@ -187,11 +187,15 @@ if ($_POST['txtti']) {
         <?php } ?>
         <form method='post' action='#tag-listing' id='tag-listing' class='tags'>
             Tags: <?php
-                foreach ($mm->getTags() as $tag) {
+                $hier = $mm->buildTagHierarchy($mm->getTags(), function($tag) {
                     $tagname = htmlspecialchars($tag['name']);
-                    echo taghtml($tagname, "<span class='nobr'>&nbsp;<button
-                        name='deltag' value='$tag[id]'>&times;</button></span>");
-                }
+                    return "<li>" . taghtml($tagname, "<span
+                        class='nobr'>&nbsp;<button name='deltag'
+                        value='$tag[id]'>&times;</button></span>") .
+                        ($tag['children'] ? '<ul>' . implode($tag['children'])
+                        . '</ul>' : '') . "</li>";
+                });
+                echo '<ul>' . implode($hier) . '</ul>';
             ?>
         </form>
         <?php if ($admin) { ?>

@@ -105,7 +105,7 @@ class MiniMarshal {
      * @param tags Get only pages that have all of these tags. Defaults to array().
      * @param excludeTags Get only pages that have none of these. Defaults to array().
      * @return An array of associative arrays which contain keys id, url, data,
-     *     tag_names, and tag_ids (the last two of which go together).
+     *     tag_names, tag_ids, and parent_ids (the last three of which go together).
      */
     function getPages($tags = array(), $excludeTags = array()) {
         // for $tags and $excludeTags
@@ -142,7 +142,10 @@ class MiniMarshal {
                 GROUP_CONCAT(DISTINCT(pt.tag_id)) AS tag_ids,
                 GROUP_CONCAT(DISTINCT(
                     (SELECT name FROM Tags t WHERE t.id IN (pt.tag_id))
-                )) AS tag_names
+                )) AS tag_names,
+                GROUP_CONCAT(DISTINCT(
+                    (SELECT parent_id FROM Tags t WHERE t.id IN (pt.tag_id))
+                )) AS parent_ids
             FROM Pages p
             INNER JOIN PageTags pt
                 ON pt.page_id = p.id
@@ -214,11 +217,10 @@ class MiniMarshal {
     /**
      * Get all tags.
      * @return An array of associative arrays which contain keys name, id,
-     *     parent_name, and parent_id.
+     *     and parent_id.
      */
     function getTags() {
-        $stmt = $this->dbh->prepare("SELECT t.*, (SELECT name FROM Tags p " .
-            "WHERE p.id = t.parent_id) AS parent_name FROM Tags t");
+        $stmt = $this->dbh->prepare("SELECT t.* FROM Tags t");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -296,5 +298,26 @@ class MiniMarshal {
         $stmt->execute(array($name));
         $fetched = $stmt->fetch(PDO::FETCH_ASSOC);
         return $fetched['id'];
+    }
+
+    /**
+     * Create a hierarchy of tags and their children from associative arrays.
+     * @param tags An array of associative arrays with keys id, name, and parent_id.
+     * @return An array of associative arrays with keys id, name, parent_id, and
+     *     children, which is also an array of associative arrays with the same keys.
+     */
+    function buildTagHierarchy($tags, $callback = NULL, $parentId = NULL) {
+        // just use identity function if no callback provided
+        if ($callback === NULL) $callback = function($tag) { return $tag; };
+
+        $hier = array();
+        foreach ($tags as $tag) {
+            if ($tag['parent_id'] == $parentId) {
+                $branch = $this->buildTagHierarchy($tags, $callback, $tag['id']);
+                $tag['children'] = $branch;
+                array_push($hier, $callback($tag));
+            }
+        }
+        return $hier;
     }
 }
