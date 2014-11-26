@@ -106,6 +106,10 @@ if ($_POST['txtti']) {
                 } else if (isset($_POST['delpagetag'])) {
                     list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
                     $err = $mm->delPageTag($pageid, $tagid);
+                } else if (isset($_POST['setup'])) {
+                    $err = $mm->setup();
+                } else if (isset($_POST['clean'])) {
+                    // TODO
                 }
 
                 if ($err) {
@@ -212,6 +216,11 @@ if ($_POST['txtti']) {
             <label for='tag'>Name</label> <input name='tag' type='text' /><br>
             <label for='parenttag'>Parent</label> <input name='parenttag' type='text' /><br>
             <input name='addtag' type='submit' value='Create a new tag' />
+        </form><br />
+        <form method='post' action='#at' id='at'>
+            Admin tools:
+            <input type='submit' name='setup' value='Setup' />
+            <input type='submit' name='clean' value='Clean database' />
         </form>
         <?php } ?>
     </div></body>
