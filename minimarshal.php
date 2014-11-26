@@ -10,9 +10,13 @@
 // MINIMARSHAL!!!
 define('_MINIMARSHAL_DEFS_PATH', 'minimarshaldefs.php');
 
-// TODO autocreate this dir if does not exist
 // TODO handle admin login here, not in test.php
-session_save_path(__DIR__ . '/_minimarshal_session'); session_start();
+
+// autocreate session directory if not exists
+$sessionPath = __DIR__ . '/_minimarshal_session';
+if (!file_exists($sessionPath)) mkdir($sessionPath, 0777, true);
+
+session_save_path($sessionPath); session_start();
 
 require_once(_MINIMARSHAL_DEFS_PATH);
 
