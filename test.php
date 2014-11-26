@@ -140,10 +140,7 @@ if ($_POST['txtti']) {
             foreach ($mm->getPages($ti, $te) as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
-                $tags = array_combine(
-                    array_map('htmlspecialchars', explode(',', $page['tag_names'])),
-                    explode(',', $page['tag_ids'])
-                );
+                $tags = $page['tags'];
                 $id = $page['id'];
                 $datadiv = ($id == $editpage) ? 'textarea' : 'div';
                 // TODO also include a permalink based on ID maybe?
@@ -163,11 +160,15 @@ if ($_POST['txtti']) {
                         <button name='addpagetag' type='submit' value='$id'>
                             Add tag</button>
                         <div>&nbsp;</div>";
-                    foreach ($tags as $tagname => $tagid) {
-                        echo taghtml($tagname, "<span class='nobr'>&nbsp;<button
-                            name='delpagetag' value='$id-$tagid'>&times;" .
-                            "</button></span>");
-                    }
+                    $hier = $mm->buildTagHierarchy($tags, function($tag) {
+                        $tagname = htmlspecialchars($tag['name']);
+                        return taghtml($tagname, "<span
+                            class='nobr'>&nbsp;<button name='delpagetag'
+                            value='$id-$tagid'>&times;</button></span>") .
+                            ($tag['children'] ? '<span>' . implode($tag['children'])
+                            . '</span>' : '');
+                    });
+                    echo implode($hier);
                 echo "
                     </div>";
                 if ($admin) echo "

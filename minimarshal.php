@@ -105,7 +105,7 @@ class MiniMarshal {
      * @param tags Get only pages that have all of these tags. Defaults to array().
      * @param excludeTags Get only pages that have none of these. Defaults to array().
      * @return An array of associative arrays which contain keys id, url, data,
-     *     tag_names, tag_ids, and parent_ids (the last three of which go together).
+     *     tag_names, tag_ids, parent_ids, and tags (a combination of the last three).
      */
     function getPages($tags = array(), $excludeTags = array()) {
         // for $tags and $excludeTags
@@ -139,13 +139,13 @@ class MiniMarshal {
         $stmt = $this->dbh->prepare("
             SELECT
                 p.*,
-                GROUP_CONCAT(DISTINCT(pt.tag_id)) AS tag_ids,
-                GROUP_CONCAT(DISTINCT(
+                GROUP_CONCAT(pt.tag_id) AS tag_ids,
+                GROUP_CONCAT(
                     (SELECT name FROM Tags t WHERE t.id IN (pt.tag_id))
-                )) AS tag_names,
-                GROUP_CONCAT(DISTINCT(
-                    (SELECT parent_id FROM Tags t WHERE t.id IN (pt.tag_id))
-                )) AS parent_ids
+                ) AS tag_names,
+                GROUP_CONCAT(
+                    (SELECT IFNULL(parent_id, 'NULL') FROM Tags t WHERE t.id IN (pt.tag_id))
+                ) AS parent_ids
             FROM Pages p
             INNER JOIN PageTags pt
                 ON pt.page_id = p.id
@@ -157,7 +157,26 @@ class MiniMarshal {
         if ($filterClauses === '') $stmt->execute();
         else $stmt->execute(array_merge($tags, $excludeTags));
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $fetched = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($fetched as &$page) {
+            $page['tags'] = array();
+            $page['tag_names'] = explode(',', $page['tag_names']);
+            $page['tag_ids'] = explode(',', $page['tag_ids']);
+            $page['parent_ids'] = explode(',', $page['parent_ids']);
+            for ($i = 0; $i < count($page['tag_ids']); ++$i) {
+                // an ugly hack:
+                if ($page['parent_ids'][$i] === 'NULL') $page['parent_ids'][$i] = NULL;
+
+                array_push($page['tags'], array(
+                    'name' => $page['tag_names'][$i],
+                    'id' => $page['tag_ids'][$i],
+                    'parent_id' => $page['parent_ids'][$i]
+                ));
+            }
+        }
+
+        return $fetched;
     }
 
     /**
