@@ -27,6 +27,8 @@ if ($_POST['txtti']) {
             background-color: #CCF; line-height: 200%; text-decoration: none;  }
         .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
+        .children { position: relative; top: 5px; padding-top: 5px;
+            border-top: 1px solid red; }
         .nobr { white-space: nowrap; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
@@ -166,8 +168,8 @@ if ($_POST['txtti']) {
                         return taghtml($tagname, "<span
                             class='nobr'>&nbsp;<button name='delpagetag'
                             value='$id-$tagid'>&times;</button></span>") .
-                            ($tag['children'] ? '<span>' . implode($tag['children'])
-                            . '</span>' : '');
+                            ($tag['children'] ? "<span class='children'>" . 
+                            implode($tag['children']) . '</span>' : '');
                     });
                     echo implode($hier);
                 echo "
