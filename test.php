@@ -27,8 +27,13 @@ if ($_POST['txtti']) {
             background-color: #CCF; line-height: 200%; text-decoration: none;  }
         .tag button { background-color: #F00; padding: 0px 2px;
             color: #FFF; border-radius: 10px; }
-        .children { position: relative; top: 5px; padding-top: 5px;
-            border-top: 1px solid red; }
+        .children { position: relative; top: 2px; padding-top: 7px; /* 5px tag padding + 2px extra */
+            border-top: 3px solid #F00; border-radius: 20px; }
+        .children .children { border-color: #0F0; }
+        .children .children .children { border-color: #00F; }
+        .children .children .children .children { border-color: #F00; }
+        .children .children .children .children .children { border-color: #0F0; }
+        .children .children .children .children .children .children { border-color: #00F; }
         .nobr { white-space: nowrap; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
