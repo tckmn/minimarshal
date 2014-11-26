@@ -219,6 +219,12 @@ class MiniMarshal {
     function delTag($id) {
         if ($id == 1) return "You can't delete the \"untagged\" tag!";
 
+        // first we need to fix parent references; have children of this tag
+        // have new parents of whatever this tag used to have
+        $stmt = $this->dbh->prepare("SELECT @pid := parent_id FROM Tags WHERE id = ?;
+            UPDATE Tags SET parent_id = @pid WHERE parent_id = ?");
+        $stmt->execute(array($id));
+
         // delete the actual tag
         $stmt = $this->dbh->prepare("DELETE FROM Tags WHERE id = ?");
         $stmt->execute(array($id));
