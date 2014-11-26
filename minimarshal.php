@@ -292,6 +292,7 @@ class MiniMarshal {
      */
     function delPageTag($pageid, $tagid) {
         // don't let user delete last tag
+        // TODO also check that deleting all children won't also delete all tags
         $laststmt = $this->dbh->prepare("SELECT COUNT(*) FROM PageTags WHERE page_id = ?");
         $laststmt->execute(array($pageid));
         $fetched = $laststmt->fetch();

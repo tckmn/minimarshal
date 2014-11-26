@@ -172,11 +172,11 @@ if ($_POST['txtti']) {
                         <button name='addpagetag' type='submit' value='$id'>
                             Add tag</button>
                         <div>&nbsp;</div>";
-                    $hier = $mm->buildTagHierarchy($tags, function($tag) {
+                    $hier = $mm->buildTagHierarchy($tags, function($tag) use ($id) {
                         $tagname = htmlspecialchars($tag['name']);
                         return taghtml($tagname, "<span
                             class='nobr'>&nbsp;<button name='delpagetag'
-                            value='$id-$tagid'>&times;</button></span>") .
+                            value='$id-$tag[id]'>&times;</button></span>") .
                             ($tag['children'] ? "<span class='children'>" . 
                             implode($tag['children']) . '</span>' : '');
                     });
