@@ -118,6 +118,7 @@ if ($_POST['txtti']) {
             }
         }
         ?>
+        <div style='float: right; font-size: 12px'><a href='?admin'>admin</a></div>
         <h1>Keyboard Fire page listing</h1>
         <?php
             $ti = isset($_GET['ti']) ? array_map('urldecode', explode('-',
