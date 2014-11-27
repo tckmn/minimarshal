@@ -1,6 +1,8 @@
 <?php
 require_once('minimarshal.php');
 $mm = new MiniMarshal();
+
+// admin
 if (isset($_GET['admin'])) {
     if ($mm->authenticated()) $admin = TRUE;
     else {
@@ -13,7 +15,8 @@ if (isset($_GET['admin'])) {
         }
     }
 } else $admin = FALSE;
-?><?php
+
+// tag filters
 // TODO verify tags exist
 // TODO fix ugly thing in which both buttons do the same thing
 // TODO tag autocomplete
@@ -132,12 +135,14 @@ if ($_POST['txtti']) {
                 $_GET['ti'])) : array();
             $te = isset($_GET['te']) ? array_map('urldecode', explode('-',
                 $_GET['te'])) : array();
+
             echo "<p>Hello! This is a listing of all pages
                 on the site, along with tags to make them easy to find for you.
                 </p><p>You can filter the pages by tags that you want them to
                 include or exclude by typing in the text boxes, or by clicking
                 any tag in the page listing below. Click any tag you are
                 filtering by to remove it.</p>";
+
             echo "<form id='filter' method='post'><p>Tags to include: ";
             foreach ($ti as $tix) { echo taghtml($tix, '', 'ti', TRUE); }
             echo " <input name='txtti' type='text' />
@@ -145,9 +150,11 @@ if ($_POST['txtti']) {
             foreach ($te as $tex) { echo taghtml($tex, '', 'te', TRUE); }
             echo " <input name='txtte' type='text' />
                 <input name='ate' type='submit' value='Add' /></p></form>";
+
             foreach ($mm->getPages($ti, $te) as $page) {
                 $url = htmlspecialchars($page['url'], ENT_QUOTES);
                 $data = htmlspecialchars($page['data']);
+                $mddata = $mm->markdown($page['data']);
                 $tags = $page['tags'];
                 $id = $page['id'];
                 $datadiv = ($id == $editpage) ? 'textarea' : 'div';
@@ -160,7 +167,7 @@ if ($_POST['txtti']) {
                     <textarea name='editpagedata'>$data</textarea><br/>
                     <button name='saveeditpage' value='$id'>save edits</button>";
                 else echo "
-                    <div class='data'>$data</div>";
+                    <div class='data'>$mddata</div>";
                 echo "
                     <div class='tags'>";
                 if ($admin) echo "

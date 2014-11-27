@@ -27,12 +27,25 @@ class MiniMarshal {
     private $dbh;
 
     /**
+     * Parsedown object.
+     * @var Parsedown if library was found
+     * @var FALSE otherwise
+     */
+    private $parsedown;
+
+    /**
      * Constructor. (This doc-comment is absolutely worthless. I should make
      * it better.)
      */
     function __construct() {
         $this->dbh = new PDO("mysql:host=" . _MINIMARSHAL_DB_HOST . ";dbname=" .
             _MINIMARSHAL_DB_NAME, _MINIMARSHAL_DB_USER, _MINIMARSHAL_DB_PASS);
+
+        if ((@include 'Parsedown.php') === FALSE) {
+            $this->parsedown = FALSE;
+        } else {
+            $this->parsedown = new Parsedown();
+        }
     }
 
     /**
@@ -159,6 +172,7 @@ class MiniMarshal {
         }
 
         // this query is terrifying (when you add the $filterClauses part)
+        // TODO pagination
         $stmt = $this->dbh->prepare("
             SELECT
                 p.*,
@@ -174,6 +188,7 @@ class MiniMarshal {
                 ON pt.page_id = p.id
             $filterClauses
             GROUP BY p.id
+            ORDER BY p.id DESC
         ");
 
         // execute without args if no $tags or $excludeTags
@@ -368,5 +383,19 @@ class MiniMarshal {
             }
         }
         return $hier;
+    }
+
+    /**
+     * Convert a string to markdown if Parsedown can be found; return string
+     *     unchanged otherwise.
+     * @param str A string to convert to markdown
+     * @return string The HTML of the converted markdown.
+     */
+    function markdown($str) {
+        if ($this->parsedown === FALSE) {
+            return $str;
+        } else {
+            return $this->parsedown->text($str);
+        }
     }
 }
