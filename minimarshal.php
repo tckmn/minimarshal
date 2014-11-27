@@ -10,8 +10,6 @@
 // MINIMARSHAL!!!
 define('_MINIMARSHAL_DEFS_PATH', 'minimarshaldefs.php');
 
-// TODO handle admin login here, not in test.php
-
 // autocreate session directory if not exists
 $sessionPath = __DIR__ . '/_minimarshal_session';
 if (!file_exists($sessionPath)) mkdir($sessionPath, 0777, true);
@@ -35,6 +33,26 @@ class MiniMarshal {
     function __construct() {
         $this->dbh = new PDO("mysql:host=" . _MINIMARSHAL_DB_HOST . ";dbname=" .
             _MINIMARSHAL_DB_NAME, _MINIMARSHAL_DB_USER, _MINIMARSHAL_DB_PASS);
+    }
+
+    /**
+     * Is the user authenticated as admin?
+     * @return bool TRUE if authenticated; FALSE otherwise
+     */
+    function authenticated() {
+        return isset($_SESSION['admin']);
+    }
+
+    /**
+     * Attempt to authenticate as admin with a password.
+     * @param pass The password input by the user.
+     * @return bool TRUE if successfully authenticated; FALSE otherwise
+     */
+    function tryAuthenticate($pass) {
+        if (hash('whirlpool', $pass) == _MINIMARSHAL_PW_HASH) {
+            $_SESSION['admin'] = TRUE;
+            return TRUE;
+        } else return FALSE;
     }
 
     /**

@@ -1,6 +1,19 @@
-<?php require_once('minimarshal.php');
+<?php
+require_once('minimarshal.php');
 $mm = new MiniMarshal();
-$admin = isset($_GET['admin']); ?><?php
+if (isset($_GET['admin'])) {
+    if ($mm->authenticated()) $admin = TRUE;
+    else {
+        if (isset($_POST['adminpass']) && $mm->tryAuthenticate($_POST['adminpass'])) {
+            $admin = TRUE;
+        } else {
+            echo "<form method='post' id='err'>Admin password required:
+                <input name='adminpass' type='password' />
+                <input type='submit' value='Go' /></form>";
+        }
+    }
+} else $admin = FALSE;
+?><?php
 // TODO verify tags exist
 // TODO fix ugly thing in which both buttons do the same thing
 // TODO tag autocomplete
@@ -69,63 +82,46 @@ if ($_POST['txtti']) {
         }
 
         if ($admin) {
-            if (!isset($_SESSION['admin'])) {
-                if (isset($_POST['adminpass']) && hash('whirlpool',
-                    $_POST['adminpass']) == 'bb327808a3caf17b56229e59a0851f1' .
-                    '0d3e0b8c97b3b66af4fb3ecb6e657a6839fd0dc73ac9aba12355dbb' .
-                    '82dcae4537c2eabc8d9da85ae91a7fe84c5a726cea') {
-                    $_SESSION['admin'] = true;
-                    echo "<div id='err'>Please click
-                        <a href='$_SERVER[REQUEST_URI]'>here</a> to complete
-                        authentication.</div>";
-                } else {
-                    echo "<form method='post' id='err'>Admin password
-                        required for admin requests to be processed:
-                        <input name='adminpass' type='password' />
-                        <input type='submit' value='Go' /></form>";
-                }
-            } else {
-                $editpage = FALSE;
-                if (isset($_POST['addpage'])) {
-                    $err = $mm->addPage($_POST['url'], $_POST['data']);
-                } else if (isset($_POST['delpage'])) {
-                    $err = $mm->delPage($_POST['delpage']);
-                } else if (isset($_POST['editpage'])) {
-                    $editpage = $_POST['editpage'];
-                } else if (isset($_POST['saveeditpage'])) {
-                    $err = $mm->setPageData($_POST['saveeditpage'],
-                        $_POST['editpagedata']);
-                } else if (isset($_POST['addtag'])) {
-                    $err = $mm->addTag($_POST['tag'], ($_POST['parenttag'] == "" ?
-                        NULL : $mm->tagIdFromName($_POST['parenttag'])));
-                } else if (isset($_POST['deltag'])) {
-                    $err = $mm->delTag($_POST['deltag']);
-                } else if (isset($_POST['addpagetag'])) {
-                    $err = $mm->addPageTag($_POST['addpagetag'],
-                        $mm->tagIdFromName($_POST['pagetag']));
-                } else if (isset($_POST['delpagetag'])) {
-                    list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
-                    $err = $mm->delPageTag($pageid, $tagid);
-                } else if (isset($_POST['setup'])) {
-                    $err = $mm->setup();
-                } else if (isset($_POST['clean'])) {
-                    // TODO
-                }
+            $editpage = FALSE;
+            if (isset($_POST['addpage'])) {
+                $err = $mm->addPage($_POST['url'], $_POST['data']);
+            } else if (isset($_POST['delpage'])) {
+                $err = $mm->delPage($_POST['delpage']);
+            } else if (isset($_POST['editpage'])) {
+                $editpage = $_POST['editpage'];
+            } else if (isset($_POST['saveeditpage'])) {
+                $err = $mm->setPageData($_POST['saveeditpage'],
+                    $_POST['editpagedata']);
+            } else if (isset($_POST['addtag'])) {
+                $err = $mm->addTag($_POST['tag'], ($_POST['parenttag'] == "" ?
+                    NULL : $mm->tagIdFromName($_POST['parenttag'])));
+            } else if (isset($_POST['deltag'])) {
+                $err = $mm->delTag($_POST['deltag']);
+            } else if (isset($_POST['addpagetag'])) {
+                $err = $mm->addPageTag($_POST['addpagetag'],
+                    $mm->tagIdFromName($_POST['pagetag']));
+            } else if (isset($_POST['delpagetag'])) {
+                list($pageid, $tagid) = explode('-', $_POST['delpagetag']);
+                $err = $mm->delPageTag($pageid, $tagid);
+            } else if (isset($_POST['setup'])) {
+                $err = $mm->setup();
+            } else if (isset($_POST['clean'])) {
+                // TODO
+            }
 
-                if ($err) {
-                    $err = htmlspecialchars($err);
-                    echo "<div id='err'>$err <a id='errlink'
-                        href='$_SERVER[REQUEST_URI]'>OK</a></div>";
-                    // some simple JS to make the OK button just hide the err
-                    echo "<script type='text/javascript'>
-                        var el = document.getElementById('errlink');
-                        el.href = window.location.hash || '#';
-                        el.onclick = function(e) {
-                            e.preventDefault();
-                            document.getElementById('err').style.display = 'none';
-                        }
-                    </script>";
-                }
+            if ($err) {
+                $err = htmlspecialchars($err);
+                echo "<div id='err'>$err <a id='errlink'
+                    href='$_SERVER[REQUEST_URI]'>OK</a></div>";
+                // some simple JS to make the OK button just hide the err
+                echo "<script type='text/javascript'>
+                    var el = document.getElementById('errlink');
+                    el.href = window.location.hash || '#';
+                    el.onclick = function(e) {
+                        e.preventDefault();
+                        document.getElementById('err').style.display = 'none';
+                    }
+                </script>";
             }
         }
         ?>
