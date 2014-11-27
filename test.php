@@ -53,6 +53,7 @@ if ($_POST['txtti']) {
         .nobr { white-space: nowrap; }
         #tag-listing { margin: 30px 0px 10px; }
         .delpage { margin-top: 15px; font-size: 10px; background-color: #FDD; }
+        .editpagedata { width: 100%; height: 200px; }
         </style>
         <meta name='viewport' content='width=device-width' />
     </head>
@@ -157,14 +158,13 @@ if ($_POST['txtti']) {
                 $mddata = $mm->markdown($page['data']);
                 $tags = $page['tags'];
                 $id = $page['id'];
-                $datadiv = ($id == $editpage) ? 'textarea' : 'div';
                 // TODO also include a permalink based on ID maybe?
                 echo "
                 <form class='page' method='post' action='#p$id' id='p$id'>
                     <h2 class='url'><a href='$url'>$url</a>
                         <span class='date'>- #$id at $page[date]</span></h2>";
                 if ($id == $editpage) echo "
-                    <textarea name='editpagedata'>$data</textarea><br/>
+                    <textarea class='editpagedata' name='editpagedata'>$data</textarea><br/>
                     <button name='saveeditpage' value='$id'>save edits</button>";
                 else echo "
                     <div class='data'>$mddata</div>";
